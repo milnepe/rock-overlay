@@ -1,0 +1,52 @@
+/dts-v1/;						
+/plugin/;						
+
+/* Blue LED overlay for ROCK 3A on Armbian 23.05.0-trunk Bullseye
+   with Linux 6.1.14-rk35xx
+   
+   rk3568-roc-3a.dts fragment:
+   
+   leds {
+		compatible = "gpio-leds";
+
+		led_user: led-0 {
+			gpios = <&gpio0 RK_PB7 GPIO_ACTIVE_HIGH>;
+			function = LED_FUNCTION_HEARTBEAT;
+			color = <LED_COLOR_ID_BLUE>;
+			linux,default-trigger = "heartbeat";
+			pinctrl-names = "default";
+			pinctrl-0 = <&led_user_en>;
+		};
+	};
+	
+	Compile overlay with:
+	dtc -O dtb -o rk3568-blue-led.dtbo rk3568-blue-led.dts
+	
+	Install in:
+	/boot/overlay-user
+	
+	Set armbianEnv.txt to:
+	user_overlays=rk3568-blue-led
+	
+	Need to disable armbian led scripts as they overwrite dtbo
+	sudo mv /usr/lib/armbian/armbian-led* .
+	
+	Check overlay loads in serial console:
+	...
+	reading /overlay-user/rk3568-blue-led.dtbo                                      
+	214 bytes read in 2 ms (104.5 KiB/s)                                            
+	Applying user provided DT overlay rk3568-blue-led.dtbo
+	... 
+*/
+
+
+
+
+						
+/* Target location syntax works for base DT not compiled with -@
+   as is the case with Armbian */						
+&{/leds} {				
+	led-0 {
+		linux,default-trigger = "timer";
+	};		
+};

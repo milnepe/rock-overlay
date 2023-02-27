@@ -1,0 +1,15 @@
+/dts-v1/;						
+/plugin/;						
+							
+/ {							
+compatible = "radxa,rock3a", "rockchip,rk3568";
+							
+	fragment@0 {					
+		target = <&gpio_leds>;				
+		__overlay__ {					
+			user-led {
+				linux,default-trigger = "heartbeat";
+			};		
+		};
+	};						
+};

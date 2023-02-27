@@ -1,0 +1,19 @@
+Armbian notes
+
+
+Disable led scripts - this overrides the blue-led overlay if left in place.
+
+rock@rock-3a:~$ ls /usr/lib/armbian                                             
+armbian-allwinner-battery       armbian-hardware-monitor                        
+armbian-apt-updates             armbian-hardware-optimization                   
+armbian-audio-config            armbian-led-state-restore.sh                    
+armbian-check-battery-shutdown  armbian-led-state-save.sh                       
+armbian-common                  armbian-ramlog                                  
+armbian-firstlogin              armbian-resize-filesystem                       
+armbian-firstrun                armbian-truncate-logs                           
+armbian-firstrun-config         armbian-zram-config 
+
+rock@rock-3a:~$ sudo mv /usr/lib/armbian/armbian-led* .
+
+copy back
+sudo mv armbian-led* /usr/lib/armbian/
