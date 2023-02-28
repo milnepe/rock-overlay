@@ -1,4 +1,4 @@
-Armbian notes
+Armbian notes - Rock 3A
 
 
 Disable led scripts - this overrides the blue-led overlay if left in place.
@@ -17,3 +17,84 @@ rock@rock-3a:~$ sudo mv /usr/lib/armbian/armbian-led* .
 
 copy back
 sudo mv armbian-led* /usr/lib/armbian/
+
+
+user-led is in gpiochip0 on pin-15
+
+root@rock-3a:/home/rock# cat /sys/kernel/debug/gpio                             
+gpiochip0: GPIOs 0-31, parent: platform/fdd60000.gpio0, gpio0:                  
+ gpio-5   (                    |vcc5v0-otg-regulator) out hi                    
+ gpio-6   (                    |vcc5v0-host-regulato) out hi                    
+ gpio-15  (                    |user-led            ) out lo                    
+ gpio-28  (                    |pcie30_3v3          ) out hi                    
+ gpio-29  (                    |vcc5v0-usbhub-regula) out hi                    
+                                                                                
+gpiochip1: GPIOs 32-63, parent: platform/fe740000.gpio1, gpio1:
+...
+
+gpio-15 is mapped to pad GPIO0_B7 in linux-6.1/include/dt-bindings/pinctrl/rockchip.h
+
+
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/*
+ * Header providing constants for Rockchip pinctrl bindings.
+ *
+ * Copyright (c) 2013 MundoReader S.L.
+ * Author: Heiko Stuebner <heiko@sntech.de>
+ */
+
+#ifndef __DT_BINDINGS_ROCKCHIP_PINCTRL_H__
+#define __DT_BINDINGS_ROCKCHIP_PINCTRL_H__
+
+...
+#define RK_PB7		15
+#define RK_PC0		16
+...
+
+*************************************************************
+GPIO 40-pin header
+
+gpio-16 is mapped to pad GPIO0_C0 which is GPIO header pin-15
+
+Export pin
+root@rock-3a:~# echo 16 > /sys/class/gpio/export                                
+root@rock-3a:~# cat /sys/kernel/debug/gpio                                      
+gpiochip0: GPIOs 0-31, parent: platform/fdd60000.gpio0, gpio0:                  
+ gpio-5   (                    |vcc5v0-otg-regulator) out hi                    
+ gpio-6   (                    |vcc5v0-host-regulato) out hi                    
+ gpio-15  (                    |user-led            ) out lo                    
+ gpio-16  (                    |sysfs               ) in  lo                    
+ gpio-28  (                    |pcie30_3v3          ) out hi                    
+ gpio-29  (                    |vcc5v0-usbhub-regula) out hi 
+ 
+Set direction
+root@rock-3a:~# echo out > /sys/class/gpio/gpio16/direction                     
+root@rock-3a:~# cat /sys/kernel/debug/gpio                                      
+gpiochip0: GPIOs 0-31, parent: platform/fdd60000.gpio0, gpio0:                  
+ gpio-5   (                    |vcc5v0-otg-regulator) out hi                    
+ gpio-6   (                    |vcc5v0-host-regulato) out hi                    
+ gpio-15  (                    |user-led            ) out lo                    
+ gpio-16  (                    |sysfs               ) out lo                    
+ gpio-28  (                    |pcie30_3v3          ) out hi                    
+ gpio-29  (                    |vcc5v0-usbhub-regula) out hi 
+ 
+Set pin hi
+root@rock-3a:~# echo 1 > /sys/class/gpio/gpio16/value                           
+root@rock-3a:~# cat /sys/kernel/debug/gpio                                      
+gpiochip0: GPIOs 0-31, parent: platform/fdd60000.gpio0, gpio0:                  
+ gpio-5   (                    |vcc5v0-otg-regulator) out hi                    
+ gpio-6   (                    |vcc5v0-host-regulato) out hi                    
+ gpio-15  (                    |user-led            ) out lo                    
+ gpio-16  (                    |sysfs               ) out hi                    
+ gpio-28  (                    |pcie30_3v3          ) out hi                    
+ gpio-29  (                    |vcc5v0-usbhub-regula) out hi
+ 
+Unexport pin (pin stays hi)
+root@rock-3a:~# echo 16 > /sys/class/gpio/unexport                              
+root@rock-3a:~# cat /sys/kernel/debug/gpio                                      
+gpiochip0: GPIOs 0-31, parent: platform/fdd60000.gpio0, gpio0:                  
+ gpio-5   (                    |vcc5v0-otg-regulator) out hi                    
+ gpio-6   (                    |vcc5v0-host-regulato) out hi                    
+ gpio-15  (                    |user-led            ) out lo                    
+ gpio-28  (                    |pcie30_3v3          ) out hi                    
+ gpio-29  (                    |vcc5v0-usbhub-regula) out hi  
