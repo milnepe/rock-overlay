@@ -1,0 +1,84 @@
+/dts-v1/;						
+/plugin/;						
+
+/* Add an external Red LED overlay on GPIO header Pin-15 and fix blue
+   on-board LED for ROCK 3A on Armbian 23.05.0-trunk Bullseye with
+   Linux 5.10.110-rk35xx
+   
+   rk3568-roc-3a.dts fragment:
+   
+	gpio_leds: gpio-leds {
+		compatible = "gpio-leds";
+		status = "okay";
+
+		user-led {
+			gpios = <&gpio0 RK_PB7 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "timer";
+			default-state = "on";
+			pinctrl-0 = <&user_led>;
+		};
+	
+	Compile overlay with:
+	dtc -O dtb -o rk3568-red-blue-led.dtbo rk3568-red-blue-led.dts
+
+	Install in:
+	/boot/overlay-user
+
+	Set armbianEnv.txt to:
+	user_overlays=rk3568-red-blue-led
+
+	Or use armbian-add-overlay to apply the overlay
+	sudo armbian-add-overlay rk3568-red-blue-led.dts
+
+	Need to disable armbian led scripts as they overwrite dtbo
+	sudo mv /usr/lib/armbian/armbian-led* .
+
+	Check overlay loads in serial console:
+	...
+	reading /overlay-user/rk3568-red-blue-led.dtbo                                      
+	214 bytes read in 2 ms (104.5 KiB/s)                                            
+	Applying user provided DT overlay rk3568-red-blue-led.dtbo
+	... 
+*/
+	
+
+
+
+
+/* Target location syntax works for base DT not compiled with -@
+   as is the case with Armbian 
+   
+   Note: timer does not work in this version
+   Note: Rockchip macros replaced with hex values
+   so we can compile the overlay on the board
+   Note: RK_PC0 is mapped to gpio-16 in rockchip.h
+	 #define RK_PC0		16
+	 which is GPIO0_PC0 on RK3568 mapped to GPIO pin-15 on GPIO header
+	   
+   */
+
+&{/gpio-leds} {
+	/* This is the on-board LED defined in the base DTS */
+	user-led {
+		linux,default-trigger = "heartbeat";
+		default-state = "off";
+	};
+
+	/* Here we are adding an external LED on GPIO header pin-15 */	
+	my-led {
+	/*      gpios = <&gpio0 RK_PC0 GPIO_ACTIVE_HIGH>; */
+		gpios = <&gpio0 0x10 0x00>;
+		linux,default-trigger = "heartbeat";
+		default-state = "off";
+		pinctrl-0 = <&my_led>;
+	};						
+};
+
+&{/pinctrl} {
+	leds {
+		my_led: my-led {
+		/*	rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_none>; */
+			rockchip,pins = <0 0x10 0x00 &pcfg_pull_none>;
+		};
+	};
+};
