@@ -1,0 +1,85 @@
+/dts-v1/;						
+/plugin/;						
+
+/* Add an external LED overlay to GPIO pin-15 for ROCK 3A on Armbian 23.05.0-trunk Bullseye
+   with Linux 6.1.14-rk35xx
+   
+   rk3568-roc-3a.dts fragment:
+   
+   leds {
+		compatible = "gpio-leds";
+
+		led_user: led-0 {
+			gpios = <&gpio0 RK_PB7 GPIO_ACTIVE_HIGH>;
+			function = LED_FUNCTION_HEARTBEAT;
+			color = <LED_COLOR_ID_BLUE>;
+			linux,default-trigger = "heartbeat";
+			pinctrl-names = "default";
+			pinctrl-0 = <&led_user_en>;
+		};
+	};
+	
+	Compile overlay with:
+	dtc -O dtb -o rk3568-red-led.dtbo rk3568-red-led.dts
+	
+	Install in:
+	/boot/overlay-user
+	
+	Set armbianEnv.txt to:
+	user_overlays=rk3568-red-led
+	
+	Or use armbian-add-overlay to apply the overlay
+	sudo armbian-add-overlay rk3568-red-led.dts
+	
+	Need to disable armbian led scripts as they overwrite dtbo
+	sudo mv /usr/lib/armbian/armbian-led* .
+	
+	Check overlay loads in serial console:
+	...
+	reading /overlay-user/rk3568-red-led.dtbo                                      
+	214 bytes read in 2 ms (104.5 KiB/s)                                            
+	Applying user provided DT overlay rk3568-red-led.dtbo
+	... 
+
+	The LED should appear as red:heartbeat in /sys/class/leds
+	rock@rock-3a:~$ ls /sys/class/leds/                                             
+	blue:heartbeat  mmc1::  red:heartbeat 
+*/
+
+
+
+
+						
+/* Target location syntax works for base DT not compiled with -@
+   as is the case with Armbian 
+   
+   Note: Rockchip macros replaced with hex values
+   so we can compile the overlay on the board
+   Note: RK_PC0 is mapped to gpio-16 in rockchip.h
+	 #define RK_PC0		16
+	 which is GPIO0_PC0 on RK3568 mapped to GPIO pin-15 on GPIO header
+	   
+   */
+						
+&{/leds} {
+	my_led: led-1 {
+	/*      gpios = <&gpio0 RK_PC0 GPIO_ACTIVE_HIGH>; */
+		gpios = <&gpio0 0x10 0x00>;
+	/*	function = LED_FUNCTION_HEARTBEAT; */
+		function = "heartbeat";
+	/*	color = <LED_COLOR_ID_RED>; */
+		color = <0x01>;
+		linux,default-trigger = "heartbeat";
+		pinctrl-names = "default";
+		pinctrl-0 = <&my_led_en>;
+	};
+};
+
+&{/pinctrl} {
+	leds {
+		my_led_en: my_led_en {
+		/*	rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_none>; */
+			rockchip,pins = <0 0x10 0x00 &pcfg_pull_none>;
+		};
+	};
+};
