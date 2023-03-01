@@ -27,7 +27,7 @@
 	user_overlays=rk3568-blue-led
 	
 	Need to disable armbian led scripts as they overwrite dtbo
-	sudo mv /usr/lib/armbian/armbian-led* .
+	sudo systemctl disable armbian-led-state.service
 	
 	Check overlay loads in serial console:
 	...

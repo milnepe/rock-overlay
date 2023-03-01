@@ -1,7 +1,11 @@
 Armbian notes - Rock 3A
 
 
-Disable led scripts - this overrides the blue-led overlay if left in place.
+Disable Armbian servive armbian-led-state.service as this runs scripts
+to save and restore the led device states which will override the 
+overlay settings:
+
+sudo systemctl disable armbian-led-state.service
 
 rock@rock-3a:~$ ls /usr/lib/armbian                                             
 armbian-allwinner-battery       armbian-hardware-monitor                        
