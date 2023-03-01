@@ -26,6 +26,9 @@
 	Set armbianEnv.txt to:
 	user_overlays=rk3568-blue-led
 	
+	Or use armbian-add-overlay to apply the overlay
+	sudo armbian-add-overlay rk3568-red-led.dts
+	
 	Need to disable armbian led scripts as they overwrite dtbo
 	sudo systemctl disable armbian-led-state.service
 	
