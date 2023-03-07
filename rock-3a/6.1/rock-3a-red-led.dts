@@ -1,0 +1,47 @@
+/dts-v1/;						
+/plugin/;						
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+
+/* Add an external LED overlay to GPIO pin-15 for ROCK 3A on radxa-bsp
+   with Linux 6.1.12
+   
+	Create a patch using radax-overlays:
+	
+	Compile overlay in radxa-bsp:
+	./bsp --dtb linux latest
+	
+	Install in image package:
+	./bsp linux latest
+	
+	Build image with radxa-rbuild:
+	
+	dtbo's are installed as /boot/dtbo/overla.dtbo.disabled
+	Remove .enabled and add entry to extlinux.conf:
+	fdtoverlays /boot/dtbo/rock-3a-red-led.dtbo
+
+	The LED should appear as red:heartbeat in /sys/class/leds
+	rock@rock-3a:~$ ls /sys/class/leds/                                             
+	blue:heartbeat  mmc1::  red:heartbeat 
+*/
+
+&{/leds} {
+	led-1 {
+		gpios = <&gpio0 RK_PC0 GPIO_ACTIVE_HIGH>;
+		function = LED_FUNCTION_HEARTBEAT;
+		color = <LED_COLOR_ID_RED>;
+		linux,default-trigger = "heartbeat";
+		pinctrl-names = "default";
+		pinctrl-0 = <&led_ext>;
+	};
+};
+
+&{/pinctrl} {
+	leds {
+		led_ext: led_ext { /* Label is required here */
+			rockchip,pins = <0 RK_PC0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};
