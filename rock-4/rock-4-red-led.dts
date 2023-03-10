@@ -1,0 +1,36 @@
+/dts-v1/;						
+/plugin/;						
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+
+/* 	Add an external LED overlay to GPIO pin-37 GPIO4_D6 (gpio-158) on
+	ROCK 4SE & ROCK 4C+ boards
+	
+	LED should appear as red:heartbeat in /sys/kernel/debug/gpio
+	root@rock-4se:~# cat /sys/kernel/debug/gpio                                     
+	...
+	gpiochip4: GPIOs 128-159, parent: platform/ff790000.gpio, gpio4:                
+	 gpio-153 (                    |vcc5v0-host-regulato) out hi                    
+	 gpio-158 (                    |red:heartbeat       ) out lo  
+*/
+
+&{/leds} {
+	led-1 {
+		gpios = <&gpio4 RK_PD6 GPIO_ACTIVE_HIGH>;
+		function = LED_FUNCTION_HEARTBEAT;
+		color = <LED_COLOR_ID_RED>;
+		linux,default-trigger = "heartbeat";
+		pinctrl-names = "default";
+		pinctrl-0 = <&led_ext>;
+	};
+};
+
+&{/pinctrl} {
+	leds {
+		led_ext: led_ext { /* Label is required here */
+			rockchip,pins = <4 RK_PD6 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};

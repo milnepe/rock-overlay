@@ -1,0 +1,30 @@
+	Add dts overlay to radax-overlays:
+	Add dtbo entry to arch/arm64/boot/dts/rockchip/overlays/Makefile
+	Add rock-4-red-led.dts to arch/arm64/boot/dts/rockchip/overlays/
+	
+	Create email type patch in radax-overlays:
+	git format-patch origin
+	
+	Copy patch to radxa-bsp in Linux version dir
+	mkdir -p ../radxa-bsp/linux/latest/0300-overlays/ 
+	cp *.patch ../radxa-bsp/linux/latest/0300-overlays/	
+	
+	Test compile overlay in radxa-bsp - check log to ensure it compiles:
+	cd ../radxa-bsp
+	./bsp --dtb linux latest
+	
+	Install in image package:
+	./bsp linux latest
+	
+	Copy kernel and header packages to radxa-rbuild
+	cp linux-headers-6.1.12-1-latest_6.1.12-1_arm64.deb ../radxa-rbuild/
+	cp linux-image-6.1.12-1-latest_6.1.12-1_arm64.deb ../radxa-rbuild/
+
+	Build image with new kernel in radxa-rbuild:
+	cd ../radxa-rbuild
+	./rbuild -k linux-image-6.1.12-1-latest_6.1.12-1_arm64.deb rock-4se bullseye cli
+
+	Flash image to SD	
+	dtbo's are installed as /boot/dtbo/overla.dtbo.disabled
+	Remove .enabled and add entry to extlinux.conf:
+	fdtoverlays /boot/dtbo/rock-4-red-led.dtbo
